@@ -1,245 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BSS Task Reminders</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BSS Task Reminders</title>
+<style>
+/* ── Reset & Base ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;font-size:14px;background:#f0f3f8;color:#1e293b}
+input,textarea,button{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+/* ── Layout ── */
+:root{--sb:255px}
+.app{display:flex;min-height:100vh}
 
-  <style>
-    /* ─────────── Base ─────────── */
-    :root { --sb: 260px; }
-    *, *::before, *::after { box-sizing: border-box; }
-    body { background: #f0f3f8; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; font-size: 14px; }
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sb);flex-shrink:0;
+  background:#0f172a;color:#e2e8f0;
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;display:flex;flex-direction:column;
+  scrollbar-width:thin;scrollbar-color:#1e3a5f transparent;
+}
+.sb-head{padding:1.1rem 1rem .9rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:.6rem}
+.sb-icon{width:34px;height:34px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.sb-title{font-weight:700;font-size:.88rem}
+.sb-date{font-size:.65rem;color:#475569;margin-top:.1rem}
+.sb-sec{padding:.65rem .9rem}
+.sb-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:#475569;margin-bottom:.4rem;padding:0 .3rem}
+.sb-div{border:none;border-top:1px solid rgba(255,255,255,.07);margin:.1rem .9rem}
+.nb{display:flex;align-items:center;gap:.55rem;padding:.38rem .5rem;border-radius:7px;cursor:pointer;color:#94a3b8;font-size:.8rem;transition:background .12s,color .12s;user-select:none;border:none;background:transparent;width:100%;text-align:left}
+.nb:hover{background:rgba(255,255,255,.07);color:#e2e8f0}
+.nb.on{background:rgba(99,102,241,.22);color:#a5b4fc}
+.nb .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nb .cnt{margin-left:auto;font-size:.62rem;padding:.12em .5em;border-radius:999px;background:rgba(255,255,255,.1);color:#94a3b8;min-width:18px;text-align:center}
 
-    /* ─────────── Sidebar ─────────── */
-    .sidebar {
-      width: var(--sb); min-height: 100vh;
-      background: #0f172a; color: #e2e8f0;
-      position: fixed; left: 0; top: 0;
-      overflow-y: auto; z-index: 300;
-      display: flex; flex-direction: column;
-    }
-    .sb-logo {
-      padding: 1.1rem 1.1rem .9rem;
-      border-bottom: 1px solid rgba(255,255,255,.07);
-      display: flex; align-items: center; gap: .6rem;
-    }
-    .sb-logo .icon {
-      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-      background: linear-gradient(135deg,#3b82f6,#6366f1);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .sb-section { padding: .7rem .9rem; }
-    .sb-label {
-      font-size: .62rem; text-transform: uppercase;
-      letter-spacing: .1em; color: #475569; margin-bottom: .4rem; padding: 0 .3rem;
-    }
-    .nav-btn {
-      display: flex; align-items: center; gap: .55rem;
-      padding: .4rem .55rem; border-radius: 8px;
-      cursor: pointer; color: #94a3b8; font-size: .81rem;
-      transition: background .12s, color .12s; user-select: none;
-    }
-    .nav-btn:hover { background: rgba(255,255,255,.07); color: #e2e8f0; }
-    .nav-btn.active { background: rgba(99,102,241,.22); color: #a5b4fc; }
-    .nav-btn .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .nav-btn .cnt {
-      margin-left: auto; font-size: .62rem;
-      padding: .15em .55em; border-radius: 999px;
-      background: rgba(255,255,255,.1); color: #94a3b8; min-width: 20px; text-align: center;
-    }
-    .sb-divider { border-color: rgba(255,255,255,.07) !important; margin: 0 .9rem; }
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
 
-    /* ─────────── Main ─────────── */
-    .main { margin-left: var(--sb); }
+/* ── Topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(240,243,248,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid #e2e8f0;
+  padding:.7rem 1.3rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.topbar h1{font-size:.98rem;font-weight:700;margin:0}
+.topbar .sub{font-size:.7rem;color:#94a3b8;margin-top:.1rem}
+.search{
+  display:flex;align-items:center;gap:.4rem;
+  background:white;border:1px solid #e2e8f0;border-radius:8px;
+  padding:.32rem .7rem;width:260px;transition:box-shadow .15s,border-color .15s;
+}
+.search:focus-within{box-shadow:0 0 0 3px rgba(99,102,241,.15);border-color:#a5b4fc}
+.search input{border:none;outline:none;font-size:.82rem;background:transparent;flex:1;width:100%}
+.search svg{flex-shrink:0;color:#94a3b8}
 
-    /* ─────────── Topbar ─────────── */
-    .topbar {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(240,243,248,.92);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid #e2e8f0;
-      padding: .75rem 1.4rem;
-      display: flex; align-items: center; gap: .8rem;
-    }
-    .topbar h5 { margin: 0; font-weight: 700; font-size: 1rem; }
-    .topbar .sub { font-size: .72rem; color: #94a3b8; }
-    .search-box {
-      background: white; border: 1px solid #e2e8f0;
-      border-radius: 9px; display: flex; align-items: center;
-      padding: .35rem .7rem; gap: .4rem; width: 270px;
-      transition: box-shadow .15s;
-    }
-    .search-box:focus-within { box-shadow: 0 0 0 3px rgba(99,102,241,.15); border-color: #a5b4fc; }
-    .search-box input { border: none; outline: none; font-size: .83rem; background: transparent; flex: 1; }
+/* ── Content ── */
+.content{padding:1.2rem 1.3rem;flex:1}
 
-    /* ─────────── Content ─────────── */
-    .content { padding: 1.3rem 1.4rem; }
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:white;border-radius:12px;padding:.9rem 1rem;border:1px solid #e8edf3}
+.stat-n{font-size:1.75rem;font-weight:800;line-height:1}
+.stat-l{font-size:.7rem;color:#94a3b8;margin-top:.2rem}
+.stat-bar{height:3px;border-radius:2px;background:#e2e8f0;margin-top:.65rem;overflow:hidden}
+.stat-fill{height:100%;border-radius:2px;transition:width .6s ease}
 
-    /* ─────────── Stat cards ─────────── */
-    .stat-card {
-      background: white; border-radius: 13px;
-      padding: 1rem 1.15rem; border: 1px solid #e8edf3;
-    }
-    .stat-num { font-size: 1.85rem; font-weight: 800; line-height: 1; }
-    .stat-lbl { font-size: .72rem; color: #94a3b8; margin-top: .2rem; }
-    .stat-track { height: 3px; border-radius: 2px; background: #e2e8f0; margin-top: .7rem; overflow: hidden; }
-    .stat-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+/* ── Banners ── */
+.banner{border-radius:12px;padding:.85rem 1.05rem;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.7rem}
+.banner.red{background:linear-gradient(135deg,#ef4444,#dc2626);color:white}
+.banner.amber{background:linear-gradient(135deg,#f59e0b,#f97316);color:white}
+.ban-ico{font-size:1.3rem;flex-shrink:0;line-height:1.4}
+.ban-title{font-weight:700;font-size:.86rem;margin-bottom:.25rem}
+.ban-row{font-size:.77rem;opacity:.92}
 
-    /* ─────────── Banners ─────────── */
-    .banner {
-      border-radius: 13px; padding: .9rem 1.1rem;
-      margin-bottom: .7rem; display: flex; align-items: flex-start; gap: .75rem;
-    }
-    .banner-red    { background: linear-gradient(135deg,#ef4444,#dc2626); color: white; }
-    .banner-amber  { background: linear-gradient(135deg,#f59e0b,#f97316); color: white; }
-    .banner-title  { font-weight: 700; font-size: .87rem; margin-bottom: .3rem; }
-    .banner-row    { font-size: .78rem; opacity: .92; }
+/* ── Import strip ── */
+.import-strip{
+  background:white;border:1.5px dashed #cbd5e1;border-radius:11px;
+  padding:.65rem 1rem;margin-bottom:.9rem;
+  display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+  color:#64748b;font-size:.79rem;
+}
+.import-lbl{color:#2563eb;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem}
+.import-lbl:hover{text-decoration:underline}
+#xl-input{display:none}
+#import-msg{margin-left:auto;font-size:.72rem}
 
-    /* ─────────── Task cards ─────────── */
-    .task-card {
-      background: white; border-radius: 12px;
-      padding: .9rem 1rem; margin-bottom: .55rem;
-      border: 1px solid #e8edf3; border-left: 4px solid transparent;
-      transition: box-shadow .14s, transform .1s;
-    }
-    .task-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); transform: translateY(-1px); }
-    .task-card.today    { border-left-color: #ef4444; background: #fff8f8; }
-    .task-card.tomorrow { border-left-color: #f59e0b; background: #fffbf0; }
-    .task-card.overdue  { border-left-color: #dc2626; background: #fff5f5; }
-    .task-card.done     { opacity: .55; }
-    .task-card.done .tname { text-decoration: line-through; color: #94a3b8; }
+/* ── Task cards ── */
+.task-card{
+  background:white;border-radius:11px;padding:.85rem .95rem;margin-bottom:.5rem;
+  border:1px solid #e8edf3;border-left:4px solid transparent;
+  transition:box-shadow .14s,transform .1s;
+}
+.task-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.07);transform:translateY(-1px)}
+.task-card.today   {border-left-color:#ef4444;background:#fff8f8}
+.task-card.tomorrow{border-left-color:#f59e0b;background:#fffbf0}
+.task-card.overdue {border-left-color:#dc2626;background:#fff5f5}
+.task-card.done    {opacity:.55}
+.task-card.done .tname{text-decoration:line-through;color:#94a3b8}
 
-    .tname { font-weight: 600; font-size: .88rem; }
-    .tdesc { font-size: .76rem; color: #64748b; margin-top: .18rem; }
+.card-inner{display:flex;gap:.75rem;align-items:flex-start}
+.cbx{width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:#6366f1}
+.card-body{flex:1;min-width:0}
+.card-top{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin-bottom:.2rem}
+.tname{font-weight:600;font-size:.87rem}
+.tdesc{font-size:.75rem;color:#64748b;margin-top:.15rem}
+.card-meta{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-top:.5rem}
+.card-actions{display:flex;flex-direction:column;gap:.4rem;flex-shrink:0}
 
-    .pill {
-      display: inline-block; padding: .22em .65em;
-      border-radius: 999px; font-size: .66rem; font-weight: 600; line-height: 1.4;
-    }
+/* ── Pills ── */
+.pill{display:inline-block;padding:.2em .6em;border-radius:999px;font-size:.65rem;font-weight:600;line-height:1.4}
+.pill.today-tag  {background:#ef4444;color:white}
+.pill.tmrw-tag   {background:#f59e0b;color:white}
+.pill.over-tag   {background:#dc2626;color:white}
+.pill.done-tag   {background:#dcfce7;color:#16a34a}
 
-    /* Action buttons */
-    .abtn {
-      border-radius: 8px; font-size: .76rem;
-      padding: .28rem .72rem; cursor: pointer; border: 1px solid;
-      transition: background .12s; display: inline-flex; align-items: center; gap: .25rem;
-    }
-    .abtn-done  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-    .abtn-done:hover  { background: #dcfce7; }
-    .abtn-undo  { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
-    .abtn-undo:hover  { background: #f1f5f9; }
-    .abtn-email { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-    .abtn-email:hover { background: #dbeafe; }
+/* ── Buttons ── */
+.btn{border-radius:7px;font-size:.75rem;padding:.28rem .7rem;display:inline-flex;align-items:center;gap:.3rem;border:1px solid;transition:background .12s;white-space:nowrap}
+.btn-done {background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
+.btn-done:hover{background:#dcfce7}
+.btn-undo {background:#f8fafc;color:#475569;border-color:#e2e8f0}
+.btn-undo:hover{background:#f1f5f9}
+.btn-email{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}
+.btn-email:hover{background:#dbeafe}
+.btn-primary{background:#6366f1;color:white;border-color:#6366f1;padding:.38rem .9rem;font-size:.82rem}
+.btn-primary:hover{background:#4f46e5}
+.btn-light{background:#f1f5f9;color:#475569;border-color:#e2e8f0;padding:.38rem .9rem;font-size:.82rem}
+.btn-light:hover{background:#e2e8f0}
+.btn-success{background:#16a34a;color:white;border-color:#16a34a;padding:.38rem .9rem;font-size:.82rem}
+.btn-success:hover{background:#15803d}
 
-    /* ─────────── Empty state ─────────── */
-    .empty { text-align: center; padding: 3rem 1rem; color: #cbd5e1; }
+/* ── Empty state ── */
+.empty{text-align:center;padding:3.5rem 1rem;color:#cbd5e1}
+.empty .ico{font-size:2.5rem;opacity:.4}
 
-    /* ─────────── Import strip ─────────── */
-    .import-strip {
-      background: white; border-radius: 12px;
-      border: 1px dashed #cbd5e1; padding: .7rem 1rem;
-      margin-bottom: 1.1rem; display: flex; align-items: center;
-      gap: .7rem; flex-wrap: wrap; color: #64748b; font-size: .8rem;
-    }
-    .import-strip label {
-      cursor: pointer; color: #2563eb; font-weight: 600;
-      display: inline-flex; align-items: center; gap: .3rem;
-    }
+/* ── Overlay / Modal ── */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  z-index:1000;align-items:center;justify-content:center;padding:1rem;
+}
+.overlay.show{display:flex}
+.dialog{
+  background:white;border-radius:16px;width:100%;padding:1.4rem;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative;
+  max-height:90vh;overflow-y:auto;
+}
+.dialog.sm{max-width:480px}
+.dialog.lg{max-width:620px}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.dlg-title{font-weight:700;font-size:.97rem;display:flex;align-items:center;gap:.4rem}
+.dlg-close{background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;line-height:1;padding:.1rem .3rem;border-radius:5px}
+.dlg-close:hover{background:#f1f5f9;color:#475569}
+.dlg-footer{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.2rem}
+.info-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:.75rem .9rem;margin-bottom:.9rem}
+.info-box .iname{font-weight:600;font-size:.87rem}
+.info-box .idesc{font-size:.76rem;color:#64748b;margin-top:.2rem}
+.info-pills{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+label.form-lbl{display:block;font-weight:600;font-size:.76rem;color:#64748b;margin-bottom:.35rem}
+textarea.form-ctrl,input.form-ctrl{
+  width:100%;border:1px solid #e2e8f0;border-radius:9px;padding:.55rem .75rem;
+  font-size:.83rem;outline:none;resize:vertical;transition:box-shadow .15s,border-color .15s;
+}
+textarea.form-ctrl:focus,input.form-ctrl:focus{box-shadow:0 0 0 3px rgba(99,102,241,.15);border-color:#a5b4fc}
+.form-row{margin-bottom:.75rem}
 
-    /* ─────────── Modals ─────────── */
-    .modal-content { border-radius: 16px; border: none; }
-    .modal-header, .modal-footer { border: none; }
-    .info-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: .8rem .95rem; }
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:1.2rem;right:1.2rem;
+  padding:.65rem 1rem;border-radius:10px;color:white;
+  font-size:.82rem;font-weight:600;z-index:2000;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateY(120%);opacity:0;
+  transition:transform .25s ease,opacity .25s ease;
+  pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
 
-    /* ─────────── Responsive ─────────── */
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); transition: transform .25s; }
-      .sidebar.open { transform: translateX(0); }
-      .main { margin-left: 0; }
-      .search-box { width: 100%; }
-      .topbar { flex-wrap: wrap; }
-    }
-  </style>
+/* ── Mobile ── */
+@media(max-width:768px){
+  :root{--sb:0px}
+  .sidebar{display:none}
+  .sidebar.mob-open{display:flex;position:fixed;z-index:500;width:255px}
+  .mob-burger{display:flex!important}
+  .search{width:100%}
+}
+.mob-burger{display:none;background:none;border:1px solid #e2e8f0;border-radius:7px;padding:.3rem .55rem;font-size:1.1rem;margin-right:.2rem}
+</style>
 </head>
 <body>
+<div class="app">
 
-<!-- ════════════ SIDEBAR ════════════ -->
+<!-- ════ SIDEBAR ════ -->
 <aside class="sidebar" id="sidebar">
-
-  <div class="sb-logo">
-    <div class="icon"><i class="bi bi-bell-fill text-white" style="font-size:.85rem;"></i></div>
+  <div class="sb-head">
+    <div class="sb-icon">🔔</div>
     <div>
-      <div style="font-weight:700;font-size:.9rem;">BSS Reminders</div>
-      <div style="font-size:.67rem;color:#475569;" id="sb-date">—</div>
+      <div class="sb-title">BSS Reminders</div>
+      <div class="sb-date" id="sb-date">—</div>
     </div>
   </div>
 
-  <!-- Status -->
-  <div class="sb-section">
-    <div class="sb-label">View</div>
-    <div class="nav-btn active" data-sf="all"     onclick="setSF('all',this)">
-      <i class="bi bi-grid-3x3-gap-fill" style="font-size:.78rem;"></i>All Tasks
-      <span class="cnt" id="cnt-all">—</span>
-    </div>
-    <div class="nav-btn" data-sf="pending"  onclick="setSF('pending',this)">
-      <i class="bi bi-clock" style="font-size:.78rem;"></i>Pending
-      <span class="cnt" id="cnt-pend">—</span>
-    </div>
-    <div class="nav-btn" data-sf="done"     onclick="setSF('done',this)">
-      <i class="bi bi-check-circle" style="font-size:.78rem;"></i>Completed
-      <span class="cnt" id="cnt-done">—</span>
-    </div>
-    <div class="nav-btn" data-sf="overdue"  onclick="setSF('overdue',this)">
-      <i class="bi bi-exclamation-triangle" style="font-size:.78rem;color:#f87171;"></i>Overdue
-      <span class="cnt" id="cnt-over">—</span>
-    </div>
+  <!-- Status filters -->
+  <div class="sb-sec">
+    <div class="sb-lbl">View</div>
+    <button class="nb on" data-sf="all"     onclick="setSF('all',this)">    <span>⬛</span>All Tasks   <span class="cnt" id="cnt-all">—</span></button>
+    <button class="nb"    data-sf="pending"  onclick="setSF('pending',this)"><span>🕐</span>Pending     <span class="cnt" id="cnt-pend">—</span></button>
+    <button class="nb"    data-sf="done"     onclick="setSF('done',this)">  <span>✅</span>Completed   <span class="cnt" id="cnt-done">—</span></button>
+    <button class="nb"    data-sf="overdue"  onclick="setSF('overdue',this)"><span style="color:#f87171;">⚠️</span>Overdue  <span class="cnt" id="cnt-over">—</span></button>
   </div>
 
-  <hr class="sb-divider my-0" />
+  <hr class="sb-div"/>
 
-  <!-- Priority -->
-  <div class="sb-section">
-    <div class="sb-label">Priority</div>
-    <div class="nav-btn" onclick="togglePri('High',this)">
-      <span class="dot" style="background:#ef4444;"></span>High
-    </div>
-    <div class="nav-btn" onclick="togglePri('Medium',this)">
-      <span class="dot" style="background:#f59e0b;"></span>Medium
-    </div>
-    <div class="nav-btn" onclick="togglePri('Low',this)">
-      <span class="dot" style="background:#22c55e;"></span>Low
-    </div>
+  <!-- Priority filters -->
+  <div class="sb-sec">
+    <div class="sb-lbl">Priority</div>
+    <button class="nb" onclick="togglePri('High',this)">   <span class="dot" style="background:#ef4444"></span>High</button>
+    <button class="nb" onclick="togglePri('Medium',this)"> <span class="dot" style="background:#f59e0b"></span>Medium</button>
+    <button class="nb" onclick="togglePri('Low',this)">    <span class="dot" style="background:#22c55e"></span>Low</button>
   </div>
 
-  <hr class="sb-divider my-0" />
+  <hr class="sb-div"/>
 
-  <!-- Categories -->
-  <div class="sb-section" style="flex:1;">
-    <div class="sb-label">Categories</div>
+  <!-- Category filters -->
+  <div class="sb-sec" style="flex:1">
+    <div class="sb-lbl">Categories</div>
     <div id="cat-list"></div>
   </div>
-
 </aside>
 
-<!-- ════════════ MAIN ════════════ -->
+<!-- ════ MAIN ════ -->
 <div class="main">
 
   <!-- Topbar -->
   <div class="topbar">
-    <!-- hamburger (mobile) -->
-    <button class="btn btn-sm btn-light d-md-none me-1" onclick="document.getElementById('sidebar').classList.toggle('open')">
-      <i class="bi bi-list"></i>
-    </button>
+    <button class="mob-burger" onclick="document.getElementById('sidebar').classList.toggle('mob-open')">☰</button>
     <div>
-      <h5>Task Dashboard</h5>
-      <div class="sub" id="task-count">—</div>
+      <h1>Task Dashboard</h1>
+      <div class="sub" id="task-count">Loading…</div>
     </div>
-    <div class="ms-auto">
-      <div class="search-box">
-        <i class="bi bi-search text-muted" style="font-size:.78rem;"></i>
+    <div style="margin-left:auto">
+      <div class="search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="search" placeholder="Search tasks…" oninput="render()">
       </div>
     </div>
@@ -247,15 +254,18 @@
 
   <div class="content">
 
-    <!-- Stats row -->
-    <div class="row g-3 mb-3" id="stats"></div>
+    <!-- Stats -->
+    <div class="stats" id="stats"></div>
 
     <!-- Import strip -->
     <div class="import-strip">
-      <i class="bi bi-file-earmark-excel text-success fs-5"></i>
-      <span>Update tasks from Excel:</span>
-      <label><i class="bi bi-upload"></i>Choose .xlsx file<input type="file" id="xl-input" accept=".xlsx" style="display:none" onchange="importExcel(this)"></label>
-      <span class="ms-auto text-muted" id="import-msg" style="font-size:.75rem;"></span>
+      <span>📊</span>
+      <span>Update tasks from a new Excel file:</span>
+      <label class="import-lbl">
+        ⬆ Choose .xlsx
+        <input type="file" id="xl-input" accept=".xlsx" onchange="importExcel(this)">
+      </label>
+      <span id="import-msg"></span>
     </div>
 
     <!-- Banners -->
@@ -266,598 +276,444 @@
 
   </div>
 </div>
+</div><!-- /.app -->
 
-<!-- ════════════ MODAL: Mark Done ════════════ -->
-<div class="modal fade" id="doneModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header">
-        <h6 class="modal-title fw-bold">
-          <i class="bi bi-check-circle-fill text-success me-2"></i>Mark Task as Done
-        </h6>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body pt-0">
-        <div class="info-box mb-3">
-          <div class="fw-semibold" id="m-name"></div>
-          <div class="text-muted mt-1" style="font-size:.78rem;" id="m-desc"></div>
-          <div class="mt-2 d-flex flex-wrap gap-2" id="m-pills"></div>
-        </div>
-        <label class="form-label fw-semibold" style="font-size:.78rem;color:#64748b;">
-          Notes <span class="fw-normal text-muted">(optional)</span>
-        </label>
-        <textarea class="form-control" id="m-notes" rows="3"
-          placeholder="How was this completed? Any follow-up needed?"
-          style="font-size:.83rem;border-radius:10px;"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success btn-sm" onclick="confirmDone()">
-          <i class="bi bi-check-lg me-1"></i>Mark as Done
-        </button>
-      </div>
+<!-- ════ MODAL: Mark Done ════ -->
+<div class="overlay" id="done-overlay" onclick="closeOverlay('done-overlay',event)">
+  <div class="dialog sm" onclick="event.stopPropagation()">
+    <div class="dlg-head">
+      <div class="dlg-title">✅ Mark Task as Done</div>
+      <button class="dlg-close" onclick="closeOverlay('done-overlay')">✕</button>
+    </div>
+    <div class="info-box">
+      <div class="iname" id="m-name"></div>
+      <div class="idesc" id="m-desc"></div>
+      <div class="info-pills" id="m-pills"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Completion Notes <span style="font-weight:400;color:#94a3b8">(optional)</span></label>
+      <textarea class="form-ctrl" id="m-notes" rows="3" placeholder="How was this completed? Any follow-up?"></textarea>
+    </div>
+    <div class="dlg-footer">
+      <button class="btn btn-light" onclick="closeOverlay('done-overlay')">Cancel</button>
+      <button class="btn btn-success" onclick="confirmDone()">✓ Mark as Done</button>
     </div>
   </div>
 </div>
 
-<!-- ════════════ MODAL: Email ════════════ -->
-<div class="modal fade" id="emailModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header">
-        <h6 class="modal-title fw-bold">
-          <i class="bi bi-envelope-fill text-primary me-2"></i>Send Email Reminder
-        </h6>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body pt-0">
-        <div class="row g-3">
-          <div class="col-12">
-            <label class="form-label" style="font-size:.76rem;font-weight:600;color:#64748b;">To</label>
-            <input type="email" class="form-control" id="e-to"
-              placeholder="recipient@example.com" style="border-radius:10px;font-size:.85rem;">
-          </div>
-          <div class="col-12">
-            <label class="form-label" style="font-size:.76rem;font-weight:600;color:#64748b;">Subject</label>
-            <input type="text" class="form-control" id="e-sub" style="border-radius:10px;font-size:.85rem;">
-          </div>
-          <div class="col-12">
-            <label class="form-label" style="font-size:.76rem;font-weight:600;color:#64748b;">Message</label>
-            <textarea class="form-control" id="e-body" rows="7" style="border-radius:10px;font-size:.83rem;"></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary btn-sm" onclick="sendEmail()">
-          <i class="bi bi-send me-1"></i>Open in Email App
-        </button>
-      </div>
+<!-- ════ MODAL: Email ════ -->
+<div class="overlay" id="email-overlay" onclick="closeOverlay('email-overlay',event)">
+  <div class="dialog lg" onclick="event.stopPropagation()">
+    <div class="dlg-head">
+      <div class="dlg-title">📧 Send Email Reminder</div>
+      <button class="dlg-close" onclick="closeOverlay('email-overlay')">✕</button>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">To</label>
+      <input class="form-ctrl" type="email" id="e-to" placeholder="recipient@example.com">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Subject</label>
+      <input class="form-ctrl" type="text" id="e-sub">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Message</label>
+      <textarea class="form-ctrl" id="e-body" rows="8"></textarea>
+    </div>
+    <div class="dlg-footer">
+      <button class="btn btn-light" onclick="closeOverlay('email-overlay')">Cancel</button>
+      <button class="btn btn-primary" onclick="sendEmail()">📤 Open in Email App</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1300;">
-  <div id="toast" class="toast text-white border-0" style="min-width:200px;">
-    <div class="d-flex">
-      <div class="toast-body fw-semibold" id="toast-msg" style="font-size:.83rem;"></div>
-      <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>
-</div>
+<!-- ════ TOAST ════ -->
+<div class="toast" id="toast"></div>
 
-<!-- ════════════ Scripts ════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<!-- ════ SCRIPT ════ -->
 <script>
-
-// ───────────────────────────────────────────
-// Embedded task data (from Annual_Timeline.xlsx)
-// ───────────────────────────────────────────
-const BUILTIN_TASKS = [
-  {"id":0,"name":"Recieve / distribute Sprint 2 certificates","description":"Dispatch the certificates","date":"2025-01-20","priority":"Low","category":"Certificates"},
-  {"id":1,"name":"Lock the recoverables for the 1st recovery contest","description":"Follow-up on the recoveries","date":"2025-01-15","priority":"Medium","category":"Recovery"},
-  {"id":2,"name":"1st Auto Withdrawal","description":"Follow-up on the recoveries","date":"2025-02-15","priority":"High","category":"Recovery"},
-  {"id":3,"name":"End of 1st recovery contest","description":"Follow-up on the recoveries","date":"2025-03-14","priority":"High","category":"Recovery"},
-  {"id":4,"name":"1st PRO Training & Quiz","description":"2 full day training sessions","date":"2025-03-15","priority":"High","category":"Training"},
-  {"id":5,"name":"1st PRO Training & Quiz","description":"2 full day training sessions","date":"2025-03-16","priority":"High","category":"Training"},
-  {"id":6,"name":"Lock the recoverables for the 2nd recovery contest","description":"Follow-up on the recoveries","date":"2025-03-17","priority":"Medium","category":"Recovery"},
-  {"id":7,"name":"Circulate Q1 Scores for QA Checks","description":"Circulate the Q1 summary","date":"2025-04-01","priority":"High","category":"QA & Reporting"},
-  {"id":8,"name":"2nd Auto Withdrawal","description":"Follow-up on the recoveries","date":"2025-04-15","priority":"High","category":"Recovery"},
-  {"id":9,"name":"Matric & IBDP Passouts","description":"Send an email to Schools","date":"2025-04-16","priority":"Low","category":"Passouts"},
-  {"id":10,"name":"End of 2nd recovery contest","description":"Follow-up on the recoveries","date":"2025-05-15","priority":"High","category":"Recovery"},
-  {"id":11,"name":"PVC Card Picture Uploading Exercise","description":"Send an email to Schools","date":"2025-05-17","priority":"Medium","category":"ID Cards"},
-  {"id":12,"name":"Dispatching of July fee vouchers","description":"Work on returned vouchers","date":"2025-06-24","priority":"Medium","category":"Financial"},
-  {"id":13,"name":"Sprint 1 closing","description":"Look after the withdrawals","date":"2025-06-30","priority":"High","category":"Sprint Management"},
-  {"id":14,"name":"Circulate Q2 Scores for QA Checks","description":"Circulate the Q2 summary","date":"2025-07-01","priority":"High","category":"QA & Reporting"},
-  {"id":15,"name":"Financial Aid A","description":"Process through the Process Manager","date":"2025-07-01","priority":"Medium","category":"Financial"},
-  {"id":16,"name":"O'Level & A'Level Passouts","description":"Send an email to Schools","date":"2025-07-10","priority":"Low","category":"Passouts"},
-  {"id":17,"name":"Recieve / distribute Sprint 1 certificates","description":"Dispatch the certificates","date":"2025-07-15","priority":"Low","category":"Certificates"},
-  {"id":18,"name":"Mid-Year Appraisals - Objectives","description":"Do the mid-year review for non performing PROs","date":"2025-07-15","priority":"High","category":"Appraisals"},
-  {"id":19,"name":"Section allocation after promotions","description":"Send an email to Schools","date":"2025-07-23","priority":"Medium","category":"Administration"},
-  {"id":20,"name":"Science Lab updation - Only for Class 9 C and Class 9 M","description":"Send an email to Schools","date":"2025-07-25","priority":"Medium","category":"Administration"},
-  {"id":21,"name":"New Admission cycle","description":"Get ready for a super amazing month","date":"2025-08-01","priority":"High","category":"Admissions"},
-  {"id":22,"name":"Lock the recoverables for the 3rd recovery contest","description":"Follow-up on the recoveries","date":"2025-08-15","priority":"High","category":"Recovery"},
-  {"id":23,"name":"Sorting and dispatching of PVC Cards","description":"Sort the cards campus wise, send an email to dispatch departments","date":"2025-09-09","priority":"Medium","category":"ID Cards"},
-  {"id":24,"name":"3rd Auto Withdrawal","description":"Follow-up on the recoveries","date":"2025-09-15","priority":"High","category":"Recovery"},
-  {"id":25,"name":"Circulate Q3 Scores for QA Checks","description":"Circulate the Q3 summary","date":"2025-10-01","priority":"High","category":"QA & Reporting"},
-  {"id":26,"name":"End of 3rd recovery contest","description":"Follow-up on the recoveries","date":"2025-10-15","priority":"High","category":"Recovery"},
-  {"id":27,"name":"Lock the recoverables for the 4th recovery contest","description":"Follow-up on the recoveries","date":"2025-10-17","priority":"High","category":"Recovery"},
-  {"id":28,"name":"2nd PRO Training & Quiz","description":"2 full day training sessions","date":"2025-10-20","priority":"High","category":"Training"},
-  {"id":29,"name":"2nd PRO Training & Quiz","description":"2 full day training sessions","date":"2025-10-21","priority":"High","category":"Training"},
-  {"id":30,"name":"4th Auto Withdrawal","description":"Follow-up on the recoveries","date":"2025-11-15","priority":"High","category":"Recovery"},
-  {"id":31,"name":"Appraisals","description":"Calculate the ratings","date":"2025-12-01","priority":"High","category":"Appraisals"},
-  {"id":32,"name":"End of 4th recovery contest","description":"Follow-up on the recoveries","date":"2025-12-15","priority":"Medium","category":"Recovery"},
-  {"id":33,"name":"Sprint 2 closing","description":"Look after the withdrawals","date":"2025-12-31","priority":"High","category":"Sprint Management"},
-  {"id":34,"name":"Circulate Q4 Scores for QA Checks","description":"Circulate the Q4 summary","date":"2025-12-31","priority":"High","category":"QA & Reporting"}
+/* ── Embedded task data ─────────────────────── */
+const BUILTIN = [
+  {id:0,  name:"Recieve / distribute Sprint 2 certificates",            desc:"Dispatch the certificates",                                         date:"2025-01-20", pri:"Low",    cat:"Certificates"},
+  {id:1,  name:"Lock the recoverables for the 1st recovery contest",    desc:"Follow-up on the recoveries",                                       date:"2025-01-15", pri:"Medium", cat:"Recovery"},
+  {id:2,  name:"1st Auto Withdrawal",                                   desc:"Follow-up on the recoveries",                                       date:"2025-02-15", pri:"High",   cat:"Recovery"},
+  {id:3,  name:"End of 1st recovery contest",                           desc:"Follow-up on the recoveries",                                       date:"2025-03-14", pri:"High",   cat:"Recovery"},
+  {id:4,  name:"1st PRO Training & Quiz",                               desc:"2 full day training sessions",                                      date:"2025-03-15", pri:"High",   cat:"Training"},
+  {id:5,  name:"1st PRO Training & Quiz",                               desc:"2 full day training sessions",                                      date:"2025-03-16", pri:"High",   cat:"Training"},
+  {id:6,  name:"Lock the recoverables for the 2nd recovery contest",    desc:"Follow-up on the recoveries",                                       date:"2025-03-17", pri:"Medium", cat:"Recovery"},
+  {id:7,  name:"Circulate Q1 Scores for QA Checks",                     desc:"Circulate the Q1 summary",                                          date:"2025-04-01", pri:"High",   cat:"QA & Reporting"},
+  {id:8,  name:"2nd Auto Withdrawal",                                   desc:"Follow-up on the recoveries",                                       date:"2025-04-15", pri:"High",   cat:"Recovery"},
+  {id:9,  name:"Matric & IBDP Passouts",                                desc:"Send an email to Schools",                                          date:"2025-04-16", pri:"Low",    cat:"Passouts"},
+  {id:10, name:"End of 2nd recovery contest",                           desc:"Follow-up on the recoveries",                                       date:"2025-05-15", pri:"High",   cat:"Recovery"},
+  {id:11, name:"PVC Card Picture Uploading Exercise",                   desc:"Send an email to Schools",                                          date:"2025-05-17", pri:"Medium", cat:"ID Cards"},
+  {id:12, name:"Dispatching of July fee vouchers",                      desc:"Work on returned vouchers",                                         date:"2025-06-24", pri:"Medium", cat:"Financial"},
+  {id:13, name:"Sprint 1 closing",                                      desc:"Look after the withdrawals",                                        date:"2025-06-30", pri:"High",   cat:"Sprint Management"},
+  {id:14, name:"Circulate Q2 Scores for QA Checks",                     desc:"Circulate the Q2 summary",                                          date:"2025-07-01", pri:"High",   cat:"QA & Reporting"},
+  {id:15, name:"Financial Aid A",                                       desc:"Process through the Process Manager",                               date:"2025-07-01", pri:"Medium", cat:"Financial"},
+  {id:16, name:"O'Level & A'Level Passouts",                            desc:"Send an email to Schools",                                          date:"2025-07-10", pri:"Low",    cat:"Passouts"},
+  {id:17, name:"Recieve / distribute Sprint 1 certificates",            desc:"Dispatch the certificates",                                         date:"2025-07-15", pri:"Low",    cat:"Certificates"},
+  {id:18, name:"Mid-Year Appraisals - Objectives",                      desc:"Do the mid-year review for non performing PROs",                    date:"2025-07-15", pri:"High",   cat:"Appraisals"},
+  {id:19, name:"Section allocation after promotions",                   desc:"Send an email to Schools",                                          date:"2025-07-23", pri:"Medium", cat:"Administration"},
+  {id:20, name:"Science Lab updation – Class 9 C and Class 9 M",       desc:"Send an email to Schools",                                          date:"2025-07-25", pri:"Medium", cat:"Administration"},
+  {id:21, name:"New Admission cycle",                                   desc:"Get ready for a super amazing month",                               date:"2025-08-01", pri:"High",   cat:"Admissions"},
+  {id:22, name:"Lock the recoverables for the 3rd recovery contest",    desc:"Follow-up on the recoveries",                                       date:"2025-08-15", pri:"High",   cat:"Recovery"},
+  {id:23, name:"Sorting and dispatching of PVC Cards",                  desc:"Sort the cards campus wise, send an email to dispatch departments", date:"2025-09-09", pri:"Medium", cat:"ID Cards"},
+  {id:24, name:"3rd Auto Withdrawal",                                   desc:"Follow-up on the recoveries",                                       date:"2025-09-15", pri:"High",   cat:"Recovery"},
+  {id:25, name:"Circulate Q3 Scores for QA Checks",                     desc:"Circulate the Q3 summary",                                          date:"2025-10-01", pri:"High",   cat:"QA & Reporting"},
+  {id:26, name:"End of 3rd recovery contest",                           desc:"Follow-up on the recoveries",                                       date:"2025-10-15", pri:"High",   cat:"Recovery"},
+  {id:27, name:"Lock the recoverables for the 4th recovery contest",    desc:"Follow-up on the recoveries",                                       date:"2025-10-17", pri:"High",   cat:"Recovery"},
+  {id:28, name:"2nd PRO Training & Quiz",                               desc:"2 full day training sessions",                                      date:"2025-10-20", pri:"High",   cat:"Training"},
+  {id:29, name:"2nd PRO Training & Quiz",                               desc:"2 full day training sessions",                                      date:"2025-10-21", pri:"High",   cat:"Training"},
+  {id:30, name:"4th Auto Withdrawal",                                   desc:"Follow-up on the recoveries",                                       date:"2025-11-15", pri:"High",   cat:"Recovery"},
+  {id:31, name:"Appraisals",                                            desc:"Calculate the ratings",                                             date:"2025-12-01", pri:"High",   cat:"Appraisals"},
+  {id:32, name:"End of 4th recovery contest",                           desc:"Follow-up on the recoveries",                                       date:"2025-12-15", pri:"Medium", cat:"Recovery"},
+  {id:33, name:"Sprint 2 closing",                                      desc:"Look after the withdrawals",                                        date:"2025-12-31", pri:"High",   cat:"Sprint Management"},
+  {id:34, name:"Circulate Q4 Scores for QA Checks",                     desc:"Circulate the Q4 summary",                                          date:"2025-12-31", pri:"High",   cat:"QA & Reporting"},
 ];
 
-// ───────────────────────────────────────────
-// Storage keys
-// ───────────────────────────────────────────
-const TASKS_KEY  = 'bss_tasks_v2';
-const STATUS_KEY = 'bss_status_v2';
-
-// ───────────────────────────────────────────
-// State
-// ───────────────────────────────────────────
-let statusFilter  = 'all';
-let priFilter     = new Set();
-let catFilter     = new Set();
-let activeTaskId  = null;
-
-// ───────────────────────────────────────────
-// Category colour palette
-// ───────────────────────────────────────────
+/* ── Colour palettes ──────────────────────── */
 const CAT_COL = {
-  'Recovery':         { bg:'#dbeafe', fg:'#1d4ed8', dot:'#3b82f6' },
-  'Training':         { bg:'#ede9fe', fg:'#6d28d9', dot:'#8b5cf6' },
-  'QA & Reporting':   { bg:'#ccfbf1', fg:'#0f766e', dot:'#14b8a6' },
-  'Certificates':     { bg:'#fef9c3', fg:'#92400e', dot:'#eab308' },
-  'Passouts':         { bg:'#ffedd5', fg:'#c2410c', dot:'#f97316' },
-  'ID Cards':         { bg:'#e0e7ff', fg:'#3730a3', dot:'#6366f1' },
-  'Appraisals':       { bg:'#fce7f3', fg:'#9d174d', dot:'#ec4899' },
-  'Admissions':       { bg:'#dcfce7', fg:'#15803d', dot:'#22c55e' },
-  'Sprint Management':{ bg:'#cffafe', fg:'#0e7490', dot:'#06b6d4' },
-  'Financial':        { bg:'#fef3c7', fg:'#b45309', dot:'#f59e0b' },
-  'Administration':   { bg:'#f1f5f9', fg:'#475569', dot:'#94a3b8' },
-  'General':          { bg:'#f8fafc', fg:'#64748b', dot:'#cbd5e1' },
+  "Recovery":          {bg:"#dbeafe",fg:"#1d4ed8",dot:"#3b82f6"},
+  "Training":          {bg:"#ede9fe",fg:"#6d28d9",dot:"#8b5cf6"},
+  "QA & Reporting":    {bg:"#ccfbf1",fg:"#0f766e",dot:"#14b8a6"},
+  "Certificates":      {bg:"#fef9c3",fg:"#92400e",dot:"#eab308"},
+  "Passouts":          {bg:"#ffedd5",fg:"#c2410c",dot:"#f97316"},
+  "ID Cards":          {bg:"#e0e7ff",fg:"#3730a3",dot:"#6366f1"},
+  "Appraisals":        {bg:"#fce7f3",fg:"#9d174d",dot:"#ec4899"},
+  "Admissions":        {bg:"#dcfce7",fg:"#15803d",dot:"#22c55e"},
+  "Sprint Management": {bg:"#cffafe",fg:"#0e7490",dot:"#06b6d4"},
+  "Financial":         {bg:"#fef3c7",fg:"#b45309",dot:"#f59e0b"},
+  "Administration":    {bg:"#f1f5f9",fg:"#475569",dot:"#94a3b8"},
+  "General":           {bg:"#f8fafc",fg:"#64748b",dot:"#cbd5e1"},
 };
-
 const PRI_COL = {
-  'High':   { bg:'#fee2e2', fg:'#dc2626' },
-  'Medium': { bg:'#fef3c7', fg:'#d97706' },
-  'Low':    { bg:'#dcfce7', fg:'#16a34a' },
+  "High":   {bg:"#fee2e2",fg:"#dc2626"},
+  "Medium": {bg:"#fef3c7",fg:"#d97706"},
+  "Low":    {bg:"#dcfce7",fg:"#16a34a"},
 };
 
-// ───────────────────────────────────────────
-// Data helpers
-// ───────────────────────────────────────────
-function getTasks() {
-  const s = localStorage.getItem(TASKS_KEY);
-  return s ? JSON.parse(s) : BUILTIN_TASKS;
+/* ── Storage ──────────────────────────────── */
+const TK = "bss_tasks_v3", SK = "bss_status_v3";
+const getTasks  = () => { try{const s=localStorage.getItem(TK); return s?JSON.parse(s):BUILTIN;}catch{return BUILTIN;} };
+const saveTasks = t  => { try{localStorage.setItem(TK,JSON.stringify(t));}catch{} };
+const getStatus = () => { try{const s=localStorage.getItem(SK); return s?JSON.parse(s):{} ;}catch{return{};} };
+const saveStatus= s  => { try{localStorage.setItem(SK,JSON.stringify(s));}catch{} };
+
+/* ── Date helpers ─────────────────────────── */
+function pad(n){return String(n).padStart(2,"0")}
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function tomorrowStr(){const d=new Date();d.setDate(d.getDate()+1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function fmtDate(s){
+  if(!s)return"No date";
+  const[y,m,d]=s.split("-");
+  return new Date(+y,+m-1,+d).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
 }
 
-function saveTasks(t) { localStorage.setItem(TASKS_KEY, JSON.stringify(t)); }
-
-function getStatus() {
-  const s = localStorage.getItem(STATUS_KEY);
-  return s ? JSON.parse(s) : {};
-}
-
-function saveStatus(s) { localStorage.setItem(STATUS_KEY, JSON.stringify(s)); }
-
-function enrichTasks(tasks) {
-  const status  = getStatus();
-  const today   = todayStr();
-  const tmrw    = tomorrowStr();
-  return tasks.map(t => {
-    const st = status[t.id] || {};
-    return {
-      ...t,
-      done:        !!st.done,
-      notes:       st.notes || '',
-      completedAt: st.completedAt || '',
-      is_today:    t.date === today,
-      is_tomorrow: t.date === tmrw,
-      is_overdue:  !!t.date && t.date < today && !st.done,
+/* ── Enrich tasks with live status & date flags ── */
+function enrich(tasks){
+  const status=getStatus(), today=todayStr(), tmrw=tomorrowStr();
+  return tasks.map(t=>{
+    const st=status[t.id]||{};
+    return {...t,
+      done:       !!st.done,
+      notes:      st.notes||"",
+      completedAt:st.completedAt||"",
+      isToday:    t.date===today,
+      isTmrw:     t.date===tmrw,
+      isOverdue:  !!t.date && t.date<today && !st.done,
     };
   });
 }
 
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-}
+/* ── Filter state ─────────────────────────── */
+let sf="all", priF=new Set(), catF=new Set(), activeId=null;
 
-function tomorrowStr() {
-  const d = new Date(); d.setDate(d.getDate()+1);
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-}
-
-function pad(n) { return String(n).padStart(2,'0'); }
-
-function fmtDate(s) {
-  if (!s) return 'No date set';
-  const [y,m,d] = s.split('-');
-  const dt = new Date(+y, +m-1, +d);
-  return dt.toLocaleDateString('en-US',{ weekday:'short', month:'short', day:'numeric', year:'numeric' });
-}
-
-// ───────────────────────────────────────────
-// UI helpers
-// ───────────────────────────────────────────
-function pill(txt, bg, fg) {
-  return `<span class="pill" style="background:${bg};color:${fg};">${txt}</span>`;
-}
-
-function toast(msg, color = '#16a34a') {
-  const el = document.getElementById('toast');
-  el.style.background = color;
-  document.getElementById('toast-msg').textContent = msg;
-  new bootstrap.Toast(el, { delay:3000 }).show();
-}
-
-// ───────────────────────────────────────────
-// Filter controls
-// ───────────────────────────────────────────
-function setSF(mode, el) {
-  statusFilter = mode;
-  document.querySelectorAll('.nav-btn[data-sf]').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
+function setSF(mode,el){
+  sf=mode;
+  document.querySelectorAll(".nb[data-sf]").forEach(e=>e.classList.remove("on"));
+  el.classList.add("on");
   render();
 }
+function togglePri(p,el){priF.has(p)?priF.delete(p):priF.add(p);el.classList.toggle("on");render()}
+function toggleCat(c,el){catF.has(c)?catF.delete(c):catF.add(c);el.classList.toggle("on");render()}
 
-function togglePri(p, el) {
-  priFilter.has(p) ? priFilter.delete(p) : priFilter.add(p);
-  el.classList.toggle('active');
-  render();
-}
-
-function toggleCat(c, el) {
-  catFilter.has(c) ? catFilter.delete(c) : catFilter.add(c);
-  el.classList.toggle('active');
-  render();
-}
-
-function getFiltered(tasks) {
-  const q = document.getElementById('search').value.toLowerCase();
-  return tasks.filter(t => {
-    if (statusFilter === 'pending' &&  t.done)       return false;
-    if (statusFilter === 'done'    && !t.done)       return false;
-    if (statusFilter === 'overdue' && !t.is_overdue) return false;
-    if (priFilter.size > 0 && !priFilter.has(t.priority))  return false;
-    if (catFilter.size > 0 && !catFilter.has(t.category))  return false;
-    if (q && !t.name.toLowerCase().includes(q) &&
-             !t.description.toLowerCase().includes(q)) return false;
+function filtered(tasks){
+  const q=document.getElementById("search").value.toLowerCase();
+  return tasks.filter(t=>{
+    if(sf==="pending" &&  t.done)        return false;
+    if(sf==="done"    && !t.done)        return false;
+    if(sf==="overdue" && !t.isOverdue)   return false;
+    if(priF.size && !priF.has(t.pri))    return false;
+    if(catF.size && !catF.has(t.cat))    return false;
+    if(q && !t.name.toLowerCase().includes(q) && !t.desc.toLowerCase().includes(q)) return false;
     return true;
   });
 }
 
-// ───────────────────────────────────────────
-// Render functions
-// ───────────────────────────────────────────
-function renderStats(tasks) {
-  const total   = tasks.length;
-  const done    = tasks.filter(t => t.done).length;
-  const overdue = tasks.filter(t => t.is_overdue).length;
-  const tmrw    = tasks.filter(t => t.is_tomorrow && !t.done).length;
-  const pct     = total ? Math.round(done/total*100) : 0;
+/* ── Pill helper ──────────────────────────── */
+function pill(txt,bg,fg){return `<span class="pill" style="background:${bg};color:${fg}">${txt}</span>`}
 
-  document.getElementById('cnt-all').textContent  = total;
-  document.getElementById('cnt-pend').textContent = total - done;
-  document.getElementById('cnt-done').textContent = done;
-  document.getElementById('cnt-over').textContent = overdue;
-
-  document.getElementById('stats').innerHTML = `
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#6366f1;">${total}</div>
-        <div class="stat-lbl">Total Tasks</div>
-        <div class="stat-track"><div class="stat-fill" style="width:${pct}%;background:#6366f1;"></div></div>
-        <div style="font-size:.68rem;color:#94a3b8;margin-top:.2rem;">${pct}% complete</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#16a34a;">${done}</div>
-        <div class="stat-lbl">Completed</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#f59e0b;">${tmrw}</div>
-        <div class="stat-lbl">Due Tomorrow</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#ef4444;">${overdue}</div>
-        <div class="stat-lbl">Overdue</div>
-      </div>
-    </div>`;
+/* ── Render stats ─────────────────────────── */
+function renderStats(tasks){
+  const total=tasks.length, done=tasks.filter(t=>t.done).length,
+        over=tasks.filter(t=>t.isOverdue).length,
+        tmrw=tasks.filter(t=>t.isTmrw&&!t.done).length,
+        pct=total?Math.round(done/total*100):0;
+  document.getElementById("cnt-all").textContent  = total;
+  document.getElementById("cnt-pend").textContent = total-done;
+  document.getElementById("cnt-done").textContent = done;
+  document.getElementById("cnt-over").textContent = over;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="stat-n" style="color:#6366f1">${total}</div><div class="stat-l">Total Tasks</div>
+      <div class="stat-bar"><div class="stat-fill" style="width:${pct}%;background:#6366f1"></div></div>
+      <div style="font-size:.67rem;color:#94a3b8;margin-top:.2rem">${pct}% complete</div></div>
+    <div class="stat"><div class="stat-n" style="color:#16a34a">${done}</div><div class="stat-l">Completed</div></div>
+    <div class="stat"><div class="stat-n" style="color:#f59e0b">${tmrw}</div><div class="stat-l">Due Tomorrow</div></div>
+    <div class="stat"><div class="stat-n" style="color:#ef4444">${over}</div><div class="stat-l">Overdue</div></div>`;
 }
 
-function renderBanners(tasks) {
-  const todayList = tasks.filter(t => t.is_today    && !t.done);
-  const tmrwList  = tasks.filter(t => t.is_tomorrow && !t.done);
-  let html = '';
-
-  if (todayList.length) {
-    html += `<div class="banner banner-red">
-      <i class="bi bi-alarm-fill fs-5 mt-1 flex-shrink-0"></i>
-      <div>
-        <div class="banner-title">🚨 ${todayList.length} task${todayList.length>1?'s':''} due TODAY</div>
-        ${todayList.map(t=>`<div class="banner-row">• ${t.name} <span style="opacity:.75;">(${t.priority})</span></div>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  if (tmrwList.length) {
-    html += `<div class="banner banner-amber">
-      <i class="bi bi-bell-fill fs-5 mt-1 flex-shrink-0"></i>
-      <div>
-        <div class="banner-title">⏰ ${tmrwList.length} reminder${tmrwList.length>1?'s':''} for TOMORROW</div>
-        ${tmrwList.map(t=>`<div class="banner-row">• ${t.name} <span style="opacity:.75;">(${t.priority})</span></div>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  document.getElementById('banners').innerHTML = html;
+/* ── Render banners ───────────────────────── */
+function renderBanners(tasks){
+  const tday=tasks.filter(t=>t.isToday&&!t.done), tmrw=tasks.filter(t=>t.isTmrw&&!t.done);
+  let h="";
+  if(tday.length) h+=`<div class="banner red">
+    <span class="ban-ico">🚨</span>
+    <div><div class="ban-title">${tday.length} task${tday.length>1?"s":""} due TODAY</div>
+    ${tday.map(t=>`<div class="ban-row">• ${t.name} <span style="opacity:.75">(${t.pri})</span></div>`).join("")}
+    </div></div>`;
+  if(tmrw.length) h+=`<div class="banner amber">
+    <span class="ban-ico">⏰</span>
+    <div><div class="ban-title">${tmrw.length} reminder${tmrw.length>1?"s":""} for TOMORROW</div>
+    ${tmrw.map(t=>`<div class="ban-row">• ${t.name} <span style="opacity:.75">(${t.pri})</span></div>`).join("")}
+    </div></div>`;
+  document.getElementById("banners").innerHTML=h;
 }
 
-function renderCatFilters(tasks) {
-  const cats = [...new Set(tasks.map(t => t.category))].sort();
-  document.getElementById('cat-list').innerHTML = cats.map(c => {
-    const col = CAT_COL[c] || CAT_COL['General'];
-    const n   = tasks.filter(t => t.category === c).length;
-    return `<div class="nav-btn" onclick="toggleCat('${c}',this)">
-      <span class="dot" style="background:${col.dot};"></span>${c}
-      <span class="cnt">${n}</span>
-    </div>`;
-  }).join('');
+/* ── Render category sidebar ──────────────── */
+function renderCats(tasks){
+  const cats=[...new Set(tasks.map(t=>t.cat))].sort();
+  document.getElementById("cat-list").innerHTML=cats.map(c=>{
+    const col=CAT_COL[c]||CAT_COL["General"], n=tasks.filter(t=>t.cat===c).length;
+    return `<button class="nb" onclick="toggleCat('${c}',this)">
+      <span class="dot" style="background:${col.dot}"></span>${c}
+      <span class="cnt">${n}</span></button>`;
+  }).join("");
 }
 
-function render() {
-  const raw     = enrichTasks(getTasks());
-  const visible = getFiltered(raw);
+/* ── Main render ──────────────────────────── */
+function render(){
+  const all=enrich(getTasks()), vis=filtered(all);
+  renderStats(all);
+  renderBanners(all);
+  document.getElementById("task-count").textContent=`${vis.length} task${vis.length!==1?"s":""}`;
 
-  renderStats(raw);
-  renderBanners(raw);
-
-  document.getElementById('task-count').textContent =
-    `${visible.length} task${visible.length!==1?'s':''}`;
-
-  if (!visible.length) {
-    document.getElementById('task-list').innerHTML = `
-      <div class="empty">
-        <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.3;"></i>
-        <p class="mt-2" style="font-size:.88rem;">No tasks match your current filters</p>
-      </div>`;
+  if(!vis.length){
+    document.getElementById("task-list").innerHTML=
+      `<div class="empty"><div class="ico">📭</div><p style="margin-top:.6rem;font-size:.87rem">No tasks match your filters</p></div>`;
     return;
   }
 
-  // Sort: today → tomorrow → overdue → upcoming by date → done last
-  visible.sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    const rank = t => t.is_today ? 0 : t.is_tomorrow ? 1 : t.is_overdue ? 2 : 3;
-    if (rank(a) !== rank(b)) return rank(a) - rank(b);
-    return (a.date||'').localeCompare(b.date||'');
+  // Sort: today first → tomorrow → overdue → upcoming by date → done last
+  vis.sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    const r=t=>t.isToday?0:t.isTmrw?1:t.isOverdue?2:3;
+    if(r(a)!==r(b)) return r(a)-r(b);
+    return (a.date||"").localeCompare(b.date||"");
   });
 
-  document.getElementById('task-list').innerHTML = visible.map(t => {
-    const cat = CAT_COL[t.category] || CAT_COL['General'];
-    const pri = PRI_COL[t.priority] || PRI_COL['Low'];
-
-    let urgency = '';
-    let cardCls = '';
-    if (t.is_today)    { urgency = `<span class="pill" style="background:#ef4444;color:white;">TODAY</span>`;    cardCls = 'today'; }
-    else if (t.is_tomorrow) { urgency = `<span class="pill" style="background:#f59e0b;color:white;">TOMORROW</span>`; cardCls = 'tomorrow'; }
-    else if (t.is_overdue)  { urgency = `<span class="pill" style="background:#dc2626;color:white;">OVERDUE</span>`; cardCls = 'overdue'; }
+  document.getElementById("task-list").innerHTML=vis.map(t=>{
+    const cat=CAT_COL[t.cat]||CAT_COL["General"], pri=PRI_COL[t.pri]||PRI_COL["Low"];
+    let tag="", cls="";
+    if(t.isToday)    {tag=`<span class="pill today-tag">TODAY</span>`;   cls="today"}
+    else if(t.isTmrw){tag=`<span class="pill tmrw-tag">TOMORROW</span>`;cls="tomorrow"}
+    else if(t.isOverdue){tag=`<span class="pill over-tag">OVERDUE</span>`;cls="overdue"}
 
     const actionBtn = t.done
-      ? `<button class="abtn abtn-undo"  onclick="undo(${t.id})"><i class="bi bi-arrow-counterclockwise"></i>Undo</button>`
-      : `<button class="abtn abtn-done"  onclick="openDone(${t.id})"><i class="bi bi-check-lg"></i>Done</button>`;
+      ? `<button class="btn btn-undo"  onclick="undo(${t.id})">↩ Undo</button>`
+      : `<button class="btn btn-done"  onclick="openDone(${t.id})">✓ Done</button>`;
 
-    const noteLine = t.done && t.notes
-      ? `<span style="font-size:.7rem;color:#94a3b8;"><i class="bi bi-sticky me-1"></i>${t.notes}</span>` : '';
-    const doneLine = t.done
-      ? `<span style="font-size:.7rem;color:#16a34a;font-weight:600;"><i class="bi bi-check-circle-fill me-1"></i>Completed${t.completedAt ? ' · '+new Date(t.completedAt).toLocaleDateString() : ''}</span>` : '';
+    const meta = [
+      pill(t.pri, pri.bg, pri.fg),
+      pill(t.cat, cat.bg, cat.fg),
+      `<span style="font-size:.7rem;color:#94a3b8">📅 ${fmtDate(t.date)}</span>`,
+      t.done ? `<span class="pill done-tag">✓ Completed${t.completedAt?" · "+new Date(t.completedAt).toLocaleDateString():""}</span>` : "",
+      t.done && t.notes ? `<span style="font-size:.69rem;color:#94a3b8">📝 ${t.notes}</span>` : "",
+    ].filter(Boolean).join("");
 
-    return `
-    <div class="task-card ${cardCls} ${t.done?'done':''}">
-      <div class="d-flex gap-3 align-items-start">
-        <input type="checkbox" class="form-check-input mt-1" ${t.done?'checked':''}
-          style="width:1.05em;height:1.05em;cursor:pointer;flex-shrink:0;"
-          onchange="handleChk(${t.id},this.checked)">
-        <div class="flex-grow-1" style="min-width:0;">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-            <span class="tname">${t.name}</span>${urgency}
-          </div>
-          <div class="tdesc">${t.description}</div>
-          <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
-            ${pill(t.priority, pri.bg, pri.fg)}
-            ${pill(t.category, cat.bg, cat.fg)}
-            <span style="font-size:.72rem;color:#94a3b8;">
-              <i class="bi bi-calendar3 me-1"></i>${fmtDate(t.date)}
-            </span>
-            ${doneLine}${noteLine}
-          </div>
+    return `<div class="task-card ${cls} ${t.done?"done":""}">
+      <div class="card-inner">
+        <input type="checkbox" class="cbx" ${t.done?"checked":""} onchange="handleChk(${t.id},this.checked)">
+        <div class="card-body">
+          <div class="card-top"><span class="tname">${t.name}</span>${tag}</div>
+          <div class="tdesc">${t.desc}</div>
+          <div class="card-meta">${meta}</div>
         </div>
-        <div class="d-flex flex-column gap-2 flex-shrink-0 align-items-end">
+        <div class="card-actions">
           ${actionBtn}
-          <button class="abtn abtn-email" onclick="openEmail(${t.id})">
-            <i class="bi bi-envelope"></i>Email
-          </button>
+          <button class="btn btn-email" onclick="openEmail(${t.id})">📧 Email</button>
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join("");
 }
 
-// ───────────────────────────────────────────
-// Task actions
-// ───────────────────────────────────────────
-function handleChk(id, checked) { checked ? openDone(id) : undo(id); }
+/* ── Actions ──────────────────────────────── */
+function handleChk(id,checked){checked?openDone(id):undo(id)}
 
-function openDone(id) {
-  const t = enrichTasks(getTasks()).find(x => x.id === id);
-  if (!t) return;
-  activeTaskId = id;
-  document.getElementById('m-name').textContent = t.name;
-  document.getElementById('m-desc').textContent = t.description;
-  document.getElementById('m-notes').value      = t.notes || '';
-  const cat = CAT_COL[t.category] || CAT_COL['General'];
-  const pri = PRI_COL[t.priority] || PRI_COL['Low'];
-  document.getElementById('m-pills').innerHTML  =
-    pill(t.priority, pri.bg, pri.fg) + ' ' + pill(t.category, cat.bg, cat.fg) +
-    ` <span style="font-size:.72rem;color:#94a3b8;"><i class="bi bi-calendar3 me-1"></i>${fmtDate(t.date)}</span>`;
-  new bootstrap.Modal(document.getElementById('doneModal')).show();
+function openDone(id){
+  const t=enrich(getTasks()).find(x=>x.id===id); if(!t)return;
+  activeId=id;
+  document.getElementById("m-name").textContent = t.name;
+  document.getElementById("m-desc").textContent = t.desc;
+  document.getElementById("m-notes").value      = t.notes||"";
+  const cat=CAT_COL[t.cat]||CAT_COL["General"], pri=PRI_COL[t.pri]||PRI_COL["Low"];
+  document.getElementById("m-pills").innerHTML  =
+    pill(t.pri,pri.bg,pri.fg)+" "+pill(t.cat,cat.bg,cat.fg)+
+    ` <span style="font-size:.7rem;color:#94a3b8">📅 ${fmtDate(t.date)}</span>`;
+  openOverlay("done-overlay");
 }
 
-function confirmDone() {
-  const notes  = document.getElementById('m-notes').value.trim();
-  const status = getStatus();
-  status[activeTaskId] = { done:true, notes, completedAt: new Date().toISOString() };
+function confirmDone(){
+  const notes=document.getElementById("m-notes").value.trim();
+  const status=getStatus();
+  status[activeId]={done:true,notes,completedAt:new Date().toISOString()};
   saveStatus(status);
-  bootstrap.Modal.getInstance(document.getElementById('doneModal')).hide();
-  toast('✓ Task marked as done!');
+  closeOverlay("done-overlay");
+  showToast("✓ Task marked as done!","#16a34a");
   render();
 }
 
-function undo(id) {
-  const status = getStatus();
-  delete status[id];
-  saveStatus(status);
-  toast('Task moved back to pending', '#475569');
-  render();
+function undo(id){
+  const status=getStatus(); delete status[id]; saveStatus(status);
+  showToast("Task moved back to pending","#475569"); render();
 }
 
-function openEmail(id) {
-  const t = enrichTasks(getTasks()).find(x => x.id === id);
-  if (!t) return;
-  activeTaskId = id;
-  document.getElementById('e-to').value  = '';
-  document.getElementById('e-sub').value = `Task Reminder: ${t.name} — Due ${fmtDate(t.date)}`;
-  document.getElementById('e-body').value =
+function openEmail(id){
+  const t=enrich(getTasks()).find(x=>x.id===id); if(!t)return;
+  activeId=id;
+  document.getElementById("e-to").value  = "";
+  document.getElementById("e-sub").value = `Task Reminder: ${t.name} — Due ${fmtDate(t.date)}`;
+  document.getElementById("e-body").value=
 `Hi,
 
 This is a reminder for the following task:
 
   Task        : ${t.name}
-  Description : ${t.description}
+  Description : ${t.desc}
   Due Date    : ${fmtDate(t.date)}
-  Priority    : ${t.priority}
-  Category    : ${t.category}
+  Priority    : ${t.pri}
+  Category    : ${t.cat}
 
 Please ensure this is actioned on time.
 
 Regards`;
-  new bootstrap.Modal(document.getElementById('emailModal')).show();
+  openOverlay("email-overlay");
 }
 
-function sendEmail() {
-  const to  = document.getElementById('e-to').value;
-  const sub = encodeURIComponent(document.getElementById('e-sub').value);
-  const bod = encodeURIComponent(document.getElementById('e-body').value);
-  window.location.href = `mailto:${to}?subject=${sub}&body=${bod}`;
-  bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
-  toast('Email app opened!', '#2563eb');
+function sendEmail(){
+  const to=document.getElementById("e-to").value;
+  const sub=encodeURIComponent(document.getElementById("e-sub").value);
+  const bod=encodeURIComponent(document.getElementById("e-body").value);
+  window.location.href=`mailto:${to}?subject=${sub}&body=${bod}`;
+  closeOverlay("email-overlay");
+  showToast("Email app opened!","#2563eb");
 }
 
-// ───────────────────────────────────────────
-// Excel import (SheetJS)
-// ───────────────────────────────────────────
-function assignCategory(name) {
-  const n = name.toLowerCase();
-  const map = {
-    'Certificates':      ['certificate'],
-    'Recovery':          ['recovery contest','recoverable','withdrawal'],
-    'Training':          ['training','quiz'],
-    'QA & Reporting':    ['scores','qa check','circulate q'],
-    'Passouts':          ['passout'],
-    'ID Cards':          ['pvc','card'],
-    'Appraisals':        ['appraisal'],
-    'Admissions':        ['admission'],
-    'Sprint Management': ['sprint'],
-    'Financial':         ['financial','voucher'],
-    'Administration':    ['science lab','section allocation','calendar year'],
-  };
-  for (const [cat, kws] of Object.entries(map))
-    if (kws.some(k => n.includes(k))) return cat;
-  return 'General';
+/* ── Excel import ─────────────────────────── */
+function assignCat(name){
+  const n=name.toLowerCase();
+  const map=[
+    ["Certificates",      ["certificate"]],
+    ["Recovery",          ["recovery contest","recoverable","withdrawal"]],
+    ["Training",          ["training","quiz"]],
+    ["QA & Reporting",    ["scores","qa check","circulate q"]],
+    ["Passouts",          ["passout"]],
+    ["ID Cards",          ["pvc","card"]],
+    ["Appraisals",        ["appraisal"]],
+    ["Admissions",        ["admission"]],
+    ["Sprint Management", ["sprint"]],
+    ["Financial",         ["financial","voucher"]],
+    ["Administration",    ["science lab","section allocation","calendar year"]],
+  ];
+  for(const[cat,kws]of map) if(kws.some(k=>n.includes(k))) return cat;
+  return "General";
 }
 
-function importExcel(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const msg = document.getElementById('import-msg');
-  msg.textContent = 'Reading file…';
+function importExcel(input){
+  const file=input.files[0]; if(!file)return;
+  const msg=document.getElementById("import-msg");
+  msg.textContent="Reading…"; msg.style.color="#64748b";
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const wb    = XLSX.read(e.target.result, { type:'binary', cellDates:true });
-      const ws    = wb.Sheets[wb.SheetNames[0]];
-      const rows  = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
-      const tasks = rows.slice(1)
-        .filter(r => r[0])
-        .map((r, i) => {
-          let date = r[2];
-          if (date instanceof Date) {
-            date = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
-          } else if (typeof date === 'string') {
-            // try parse common formats
-            for (const fmt of [
-              [/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/, (m)=>`20${m[3]}-${pad(m[1])}-${pad(m[2])}`],
-              [/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, (m)=>`${m[3]}-${pad(m[1])}-${pad(m[2])}`],
-            ]) {
-              const match = date.match(fmt[0]);
-              if (match) { date = fmt[1](match); break; }
-            }
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) date = null;
-          } else { date = null; }
+  // Dynamically load SheetJS only when needed
+  if(typeof XLSX==="undefined"){
+    const s=document.createElement("script");
+    s.src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js";
+    s.onload=()=>doImport(file,msg);
+    s.onerror=()=>{msg.textContent="✗ Need internet to import Excel";msg.style.color="#dc2626";};
+    document.head.appendChild(s);
+  } else doImport(file,msg);
+  input.value="";
+}
 
-          return {
-            id:          i,
-            name:        String(r[0]),
-            description: r[1] ? String(r[1]) : '',
-            date,
-            priority:    r[3] ? String(r[3]) : 'Low',
-            category:    assignCategory(String(r[0])),
-          };
-        });
-
-      saveTasks(tasks);
-      // Clear old status for new task set
-      saveStatus({});
-      msg.textContent = `✓ Imported ${tasks.length} tasks`;
-      msg.style.color = '#16a34a';
-      renderCatFilters(tasks);
+function doImport(file,msg){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:"binary",cellDates:true});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+      const tasks=rows.slice(1).filter(r=>r[0]).map((r,i)=>{
+        let date=r[2];
+        if(date instanceof Date){date=`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`}
+        else{
+          const s=String(date||"");
+          const m1=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+          const m2=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+          if(m1) date=`20${m1[3]}-${pad(+m1[1])}-${pad(+m1[2])}`;
+          else if(m2) date=`${m2[3]}-${pad(+m2[1])}-${pad(+m2[2])}`;
+          else date=null;
+        }
+        return{id:i,name:String(r[0]),desc:r[1]?String(r[1]):"",date,pri:r[3]?String(r[3]):"Low",cat:assignCat(String(r[0]))};
+      });
+      saveTasks(tasks); saveStatus({});
+      renderCats(enrich(tasks));
       render();
-    } catch(err) {
-      msg.textContent = '✗ Could not read file — make sure it is a valid .xlsx';
-      msg.style.color = '#dc2626';
-    }
+      msg.textContent=`✓ ${tasks.length} tasks imported`; msg.style.color="#16a34a";
+    }catch{msg.textContent="✗ Could not read file"; msg.style.color="#dc2626";}
   };
   reader.readAsBinaryString(file);
-  input.value = ''; // allow re-import same file
 }
 
-// ───────────────────────────────────────────
-// Boot
-// ───────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const now = new Date();
-  document.getElementById('sb-date').textContent =
-    now.toLocaleDateString('en-US',{ weekday:'long', month:'short', day:'numeric' });
-
-  const tasks = getTasks();
-  renderCatFilters(enrichTasks(tasks));
-  render();
+/* ── Modal helpers ────────────────────────── */
+function openOverlay(id){document.getElementById(id).classList.add("show");document.body.style.overflow="hidden"}
+function closeOverlay(id,e){
+  if(e&&e.target!==document.getElementById(id))return;
+  document.getElementById(id).classList.remove("show");
+  document.body.style.overflow="";
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    document.querySelectorAll(".overlay.show").forEach(o=>{o.classList.remove("show");document.body.style.overflow=""});
+  }
 });
 
+/* ── Toast ────────────────────────────────── */
+let toastTimer;
+function showToast(msg,color="#16a34a"){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.style.background=color;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove("show"),3000);
+}
+
+/* ── Boot ─────────────────────────────────── */
+document.addEventListener("DOMContentLoaded",()=>{
+  const now=new Date();
+  document.getElementById("sb-date").textContent=
+    now.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+  renderCats(enrich(getTasks()));
+  render();
+});
 </script>
 </body>
 </html>
